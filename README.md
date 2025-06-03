@@ -64,30 +64,21 @@ This project consists of two main parts: the **backend** (Laravel) and the **fro
 
 #### Prerequisites
 - [Node.js](https://nodejs.org/) 14 or higher
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 
 #### Installation
-1. Navigate to the frontend directory:
-   ```bash
-   cd your-repo/frontend
-   ```
-2. Install dependencies:
+1. Install dependencies:
    ```bash
    npm install
-   ```
-   or
-   ```bash
-   yarn install
    ```
 
 #### Running the Frontend
 - Start the development server:
   ```bash
-  npm start
+  npm run build
   ```
   or
   ```bash
-  yarn start
+  npm run dev
   ```
 - The frontend will be accessible at `http://localhost:3000`.
 
