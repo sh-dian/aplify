@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/0dddd255-f961-4747-b978-b9a7e233172c)
+
 # Aplify
 Mini Job Board Application. This app allows employers to post job listings and applicants to browse and apply.
 
