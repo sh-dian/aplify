@@ -7,7 +7,7 @@ Mini Job Board Application. This app allows employers to post job listings and a
 - **Frontend**: [React](https://reactjs.org/) (JavaScript library)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **API Testing**: [Postman](https://www.postman.com/)
-
+- **Mailtrap SMTP**: [SMTP]([https://www.postman.com/](https://mailtrap.io/))
 ---
 
 ## Project Setup
