@@ -47,7 +47,7 @@ This project consists of two main parts: the **backend** (Laravel) and the **fro
 6. Set up your database connection in the `.env` file.
 7. Run database migrations:
    ```bash
-   php artisan migrate
+   php artisan migrate:fresh --seed
    ```
 
 #### Running the Backend
