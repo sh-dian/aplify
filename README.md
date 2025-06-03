@@ -1,7 +1,5 @@
-# Project Name
-
-This project is a web application built with a **Laravel** backend and a **React** frontend. It uses **Tailwind CSS** for styling and **Postman** for API testing.
-
+# Aplify
+Mini Job Board Application. This app allows employers to post job listings and applicants to browse and apply.
 ---
 
 ## Tech Stack
@@ -83,28 +81,3 @@ This project consists of two main parts: the **backend** (Laravel) and the **fro
 - The frontend will be accessible at `http://localhost:3000`.
 
 ---
-
-## API Testing with Postman
-
-### Setup
-1. Download and install Postman from [https://www.postman.com/downloads/](https://www.postman.com/downloads/).
-2. (Optional) If a Postman collection is provided in the repository (e.g., in a `postman` directory), import it into Postman.
-
-### Testing
-1. Ensure the backend is running (`php artisan serve`).
-2. Open Postman and select the imported collection (if available) or manually create requests.
-3. Send requests to the API endpoints (e.g., `http://localhost:8000/api/endpoint`) and verify the responses.
-
----
-
-## Additional Information
-
-### Contributing
-- Fork the repository.
-- Create a new branch for your feature or bug fix.
-- Make your changes and commit them.
-- Push your changes to your fork.
-- Create a pull request to the main repository.
-
-### Reporting Issues
-- If you encounter any issues, please report them on the [GitHub issues page](https://github.com/your-username/your-repo/issues).
