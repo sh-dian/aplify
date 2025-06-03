@@ -37,7 +37,7 @@ final class JobStatusEnum extends Enum
     protected static function labels(): array
     {
         return [
-            'PENDING' => 'Pending',
+            'PENDING' => 'Pending Review',
             'IN_PROGRESS' => 'In Progress',
             'COMPLETED' => 'Completed',
             'FAILED' => 'Failed',
