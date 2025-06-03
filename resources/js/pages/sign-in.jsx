@@ -13,6 +13,7 @@ const SignIn = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -25,6 +26,7 @@ const SignIn = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+        setIsSubmitting(true);
 
         try {
             const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
@@ -55,6 +57,8 @@ const SignIn = () => {
             } else {
                 setError('An unexpected error occurred');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -68,7 +72,7 @@ const SignIn = () => {
                             <Briefcase className="h-7 w-7 text-white" />
                         </div>
                         <span className="text-3xl font-bold text-cyan-950">
-                          JobBoard
+                          Aplify
                         </span>
                     </Link>
                     <h1 className="text-3xl font-bold text-cyan-700 mb-2">Welcome Back</h1>
@@ -128,9 +132,17 @@ const SignIn = () => {
 
                         <button
                             type="submit"
-                            className="w-full bg-cyan-950 text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-semibold"
+                            disabled={isSubmitting}
+                            className="w-full bg-cyan-950 text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            Sign In
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                    <span>Signing in...</span>
+                                </>
+                            ) : (
+                                'Sign In'
+                            )}
                         </button>
                     </form>
 

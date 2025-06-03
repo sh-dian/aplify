@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Mail\WelcomeEmail;
 use App\Models\Applicant;
 use App\Models\Employer;
 use App\Models\User;
@@ -11,6 +12,7 @@ use App\Traits\ApiPaginatorTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -97,8 +99,8 @@ class AuthController extends Controller
             ]);
 
             // Create related employer or applicant record
-            if ($user->role === 'employer') {
-                Employer::create(['user_id' => $user->id]);
+            if ($validated['role'] === 'employer') {
+                Employer::create(['user_id' => $user->id, 'company_name' => 'Test Company']);
                 $user->assignRole('Employer');
             } else {
                 Applicant::create(['user_id' => $user->id]);
@@ -111,6 +113,9 @@ class AuthController extends Controller
                 'token' => $token,
                 'token_type' => 'Bearer',
             ];
+
+            // Send welcome email
+            Mail::to($user->email)->send(new WelcomeEmail($user));
 
             return $this->return_api(true, Response::HTTP_CREATED, 'User registered successfully', $data, null);
         } catch (\Exception $e) {

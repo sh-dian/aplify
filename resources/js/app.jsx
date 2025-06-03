@@ -9,6 +9,7 @@ import JobForm from './pages/employer/create-jobs.jsx';
 import EditJobForm from './pages/employer/edit-jobs.jsx';
 
 import ApplyJobForm from './pages/applicant/apply-job-form.jsx';
+import AllJobs from './pages/applicant/all-jobs.jsx';
 
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById('app')).render(
 
                 {/*Applicant routes*/}
                 <Route path="/" element={<MainPage />} />
+                <Route path="/all-jobs" element={<AllJobs />} />
                 <Route path="/apply-job/:jobId" element={<ApplyJobForm />} />
 
             </Routes>

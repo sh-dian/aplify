@@ -6,6 +6,7 @@ use App\Enums\JobStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ApplicantJobResource;
 use App\Http\Resources\JobResource;
+use App\Mail\NewJobAppliedEmail;
 use App\Models\Applicant;
 use App\Models\ApplicantJob;
 use App\Models\Job;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class JobController extends Controller
 {
@@ -27,29 +29,33 @@ class JobController extends Controller
     public function allJobs(Request $request)
     {
         $latest = $request->input('latest');
+        $search = $request->input('search');
+
+        $query = Job::where('status', JobStatusEnum::OPEN());
 
         if ($latest) {
             // Get start of the current week (e.g., Monday)
             $startOfWeek = Carbon::now()->startOfWeek();
-
-            $allJobs = Job::where('status', JobStatusEnum::OPEN())
-                ->where('created_at', '>=', $startOfWeek)
-                ->orderByDesc('created_at')
-                ->paginate();
-
-            return $this->return_paginated_api(
-                true,
-                Response::HTTP_OK,
-                null,
-                JobResource::collection($allJobs),
-                null,
-                $this->apiPaginator($allJobs)
-            );
+            $query->where('created_at', '>=', $startOfWeek);
         }
-        $allJobs = Job::where('status', JobStatusEnum::OPEN())->paginate();
-        return $this->return_paginated_api(true, Response::HTTP_OK, null, JobResource::collection($allJobs), null, $this->apiPaginator($allJobs));
-    }
 
+        if ($search) {
+            $query->where('title', 'like', '%' . $search . '%');
+        }
+
+        $query->orderByDesc('created_at');
+
+        $allJobs = $query->paginate(6);
+
+        return $this->return_paginated_api(
+            true,
+            Response::HTTP_OK,
+            null,
+            JobResource::collection($allJobs),
+            null,
+            $this->apiPaginator($allJobs)
+        );
+    }
 
     /**
      * Apply for a job.
@@ -61,6 +67,7 @@ class JobController extends Controller
     {
         $validated = $request->validate([
             'message' => 'required',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
         ]);
 
         // Get the currently authenticated user
@@ -77,13 +84,24 @@ class JobController extends Controller
         }
 
         try {
+            // Handle resume file upload
+            if ($request->hasFile('resume') && $request->file('resume')->isValid()) {
+                // Store the resume in the 'resumes' directory on the default disk (e.g., public or S3)
+                $resumePath = $request->file('resume')->store('resumes', 'public');
+            } else {
+                throw new \Exception('Invalid resume file.');
+            }
+
             // Create a new job application
             $application = new ApplicantJob();
             $application->job_id = $job->id;
             $application->applicant_id = $applicant->id;
             $application->message = $validated['message'];
+            $applicant->resume_path = $resumePath;
             $application->save();
+            $applicant->save();
 
+            Mail::to($application->job->employer->user->email)->send(new NewJobAppliedEmail($application));
             return $this->return_api(true, Response::HTTP_OK, 'Applied Successfully', ApplicantJobResource::make($application), null);
         } catch (\Exception $e) {
             return $this->return_api(false, Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage(), null, null);

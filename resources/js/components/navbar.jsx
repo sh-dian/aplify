@@ -51,10 +51,16 @@ const NavBar = () => {
                     {isAuth ? (
                         <>
                             {role === 'Applicant' && (
-                                <Link to="/" className="text-slate-600 hover:text-blue-600 transition-colors">
-                                    Home
-                                </Link>
+                                <>
+                                    <Link to="/" className="text-slate-600 hover:text-blue-600 transition-colors">
+                                        Home
+                                    </Link>
+                                    <Link to="/all-jobs" className="text-slate-600 hover:text-blue-600 transition-colors">
+                                        All Jobs
+                                    </Link>
+                                </>
                             )}
+
                             {/* Add more role-based links as needed */}
                             <button
                                 onClick={handleLogout}
@@ -65,6 +71,9 @@ const NavBar = () => {
                         </>
                     ) : (
                         <>
+                            <Link to="/all-jobs" className="text-slate-600 hover:text-blue-600 transition-colors">
+                                All Jobs
+                            </Link>
                             <Link to="/sign-in" className="text-slate-600 hover:text-blue-600 transition-colors">
                                 Sign In
                             </Link>
