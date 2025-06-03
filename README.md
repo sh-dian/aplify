@@ -53,8 +53,6 @@ This project consists of two main parts: the **backend** (Laravel) and the **fro
   ```bash
   php artisan serve
   ```
-- The backend will be accessible at `http://localhost:8000`.
-
 ---
 
 ### Frontend Setup (React)
