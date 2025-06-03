@@ -4,11 +4,15 @@ namespace App\Http\Controllers\api\v1;
 
 use App\Enums\JobStatusEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ApplicantJobResource;
+use App\Http\Resources\JobResource;
 use App\Models\Applicant;
 use App\Models\ApplicantJob;
 use App\Models\Job;
 use App\Traits\ApiPaginatorTrait;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,10 +24,30 @@ class JobController extends Controller
      * Display a listing of all jobs.
      *
      */
-    public function allJobs()
+    public function allJobs(Request $request)
     {
+        $latest = $request->input('latest');
+
+        if ($latest) {
+            // Get start of the current week (e.g., Monday)
+            $startOfWeek = Carbon::now()->startOfWeek();
+
+            $allJobs = Job::where('status', JobStatusEnum::OPEN())
+                ->where('created_at', '>=', $startOfWeek)
+                ->orderByDesc('created_at')
+                ->paginate();
+
+            return $this->return_paginated_api(
+                true,
+                Response::HTTP_OK,
+                null,
+                JobResource::collection($allJobs),
+                null,
+                $this->apiPaginator($allJobs)
+            );
+        }
         $allJobs = Job::where('status', JobStatusEnum::OPEN())->paginate();
-        return $this->return_paginated_api(true, Response::HTTP_OK, null, $allJobs, null, $this->apiPaginator($allJobs));
+        return $this->return_paginated_api(true, Response::HTTP_OK, null, JobResource::collection($allJobs), null, $this->apiPaginator($allJobs));
     }
 
 
@@ -49,7 +73,7 @@ class JobController extends Controller
             ->first();
 
         if ($existingApplication) {
-            return $this->return_api(false, Response::HTTP_BAD_REQUEST, 'You have already applied for this job.', $existingApplication, null, []);
+            return $this->return_api(false, Response::HTTP_BAD_REQUEST, 'You have already applied for this job.', ApplicantJobResource::make($existingApplication), null, []);
         }
 
         try {
@@ -60,7 +84,7 @@ class JobController extends Controller
             $application->message = $validated['message'];
             $application->save();
 
-            return $this->return_api(true, Response::HTTP_OK, 'Applied Successfully', $application, null);
+            return $this->return_api(true, Response::HTTP_OK, 'Applied Successfully', ApplicantJobResource::make($application), null);
         } catch (\Exception $e) {
             return $this->return_api(false, Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage(), null, null);
         }
@@ -74,7 +98,7 @@ class JobController extends Controller
         $tenantId = Auth::user()->id;
         $jobs = Job::where('employer_id', $tenantId)->orderByDesc('created_at')->paginate();
 
-        return $this->return_paginated_api(true, Response::HTTP_OK, null, $jobs, null, $this->apiPaginator($jobs));
+        return $this->return_paginated_api(true, Response::HTTP_OK, null, JobResource::collection($jobs), null, $this->apiPaginator($jobs));
     }
 
     /**
@@ -84,21 +108,32 @@ class JobController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'location' => 'required|string|max:255',
-            'salary_range' => 'required|string',
-            'is_remote' => 'required|boolean',
-            'status' => 'required|in:' . implode(',', JobStatusEnum::toValues()),
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'location' => 'required|string|max:255',
+                'salary_range' => 'required|string',
+                'is_remote' => 'required|boolean',
+                'status' => 'required|in:' . implode(',', JobStatusEnum::toValues()),
+            ], [
+                'title.required' => 'The job title is required.',
+                'description.required' => 'The job description is required.',
+                'location.required' => 'The job location is required.',
+                'salary_range.required' => 'The salary range is required.',
+                'is_remote.required' => 'The remote status is required.',
+                'status.in' => 'The job status must be one of: ' . implode(', ', JobStatusEnum::toValues()),
+            ]);
 
-        $job = new Job();
-        $job->employer_id = Auth::user()->id;
-        $job->fill($validated);
-        $job->save();
+            $job = new Job();
+            $job->employer_id = Auth::user()->id;
+            $job->fill($validated);
+            $job->save();
 
-        return $this->return_api(true, Response::HTTP_CREATED, 'Job created successfully', $job, null);
+            return $this->return_api(true, Response::HTTP_CREATED, 'Job created successfully', JobResource::make($job), null);
+        } catch (\Exception $e) {
+            return $this->return_api(false, Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage(), null, null);
+        }
     }
 
     /**
@@ -108,8 +143,16 @@ class JobController extends Controller
      */
     public function show(Job $job)
     {
-        return $this->return_api(true, Response::HTTP_OK, null, $job, null);
+        $authUser = Auth::user();
+
+        if ($authUser->hasRole('Employer')) {
+            if ($job->employer_id !== $authUser->id) {
+                return $this->return_api(false, Response::HTTP_FORBIDDEN, 'You are not authorized to view other employer job.', null, null);
+            }
+        }
+        return $this->return_api(true, Response::HTTP_OK, null, JobResource::make($job), null);
     }
+
 
     /**
      * Update the specified job in storage.
@@ -131,6 +174,21 @@ class JobController extends Controller
         $job->fill($validated);
         $job->save();
 
-        return $this->return_api(true, Response::HTTP_OK, 'Job updated successfully', $job, null);
+        return $this->return_api(true, Response::HTTP_OK, 'Job updated successfully', JobResource::make($job), null);
+    }
+
+    /**
+     * Remove the specified job from storage.
+     *
+     * @param Job $job
+     */
+    public function destroy(Job $job)
+    {
+        if ($job->employer_id !== Auth::user()->id) {
+            return $this->return_api(false, Response::HTTP_FORBIDDEN, 'You are not authorized to delete this job.', null, null);
+        }
+
+        $job->delete();
+        return $this->return_api(true, Response::HTTP_OK, 'Job deleted successfully', null, null);
     }
 }

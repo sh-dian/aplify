@@ -38,7 +38,16 @@ const SignIn = () => {
                 storage.setItem('user', JSON.stringify(response.data.data.user));
 
                 toast.success('Login successful! Redirecting...');
-                setTimeout(() => navigate('/'), 1000);
+                const role = response.data.data.user.role;
+
+                let redirectPath = '/';
+                if (role === 'Employer') {
+                    redirectPath = '/employer';
+                } else if (role === 'Applicant') {
+                    redirectPath = '/';
+                }
+
+                setTimeout(() => navigate(redirectPath), 1000);
             }
         } catch (err) {
             if (err.response?.data?.message) {
@@ -115,22 +124,6 @@ const SignIn = () => {
                                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                 </button>
                             </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    name="remember"
-                                    checked={formData.remember}
-                                    onChange={handleInputChange}
-                                    className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
-                                />
-                                {/*<span className="ml-2 text-sm text-gray-700">Remember me</span>*/}
-                            </label>
-                            {/*<Link to="/forgot-password" className="text-sm text-black hover:text-gray-700">*/}
-                            {/*    Forgot password?*/}
-                            {/*</Link>*/}
                         </div>
 
                         <button

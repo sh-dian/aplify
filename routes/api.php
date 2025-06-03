@@ -17,19 +17,24 @@ use App\Http\Controllers\api\v1\JobController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+
 Route::get('/jobs', [JobController::class, 'allJobs']);
+
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    // Employer routes with prefix
-    Route::prefix('employer')->group(function () {
+    Route::prefix('employer')->middleware('role:Employer')->group(function () {
         Route::resource('/jobs', JobController::class);
     });
 
-    // Applicant routes with prefix
-    Route::prefix('applicant')->group(function () {
+    Route::prefix('applicant')->middleware('role:Applicant')->group(function () {
         Route::post('/apply-job/{job}', [JobController::class, 'applyJob']);
     });
+
+    Route::get('/jobs/{job}', [JobController::class, 'show']);
+    Route::get('/user', [AuthController::class, 'user']);
+
 });
 

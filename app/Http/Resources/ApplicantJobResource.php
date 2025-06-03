@@ -14,6 +14,9 @@ class ApplicantJobResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'applicant' => UserResource::make($this->applicant->user),
+            'job' => JobResource::make($this->job)
+        ];
     }
 }
