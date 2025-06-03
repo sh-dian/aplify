@@ -1,5 +1,4 @@
 # Aplify
----
 Mini Job Board Application. This app allows employers to post job listings and applicants to browse and apply.
 
 ## Tech Stack
