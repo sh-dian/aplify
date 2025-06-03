@@ -1,11 +1,15 @@
 import React, {useState} from 'react';
 import NavBar from '../components/navbar.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const Index = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
 
             {/* Navbar */}
             <NavBar />
+            <ToastContainer />
 
             {/* Hero Section */}
             <div className="relative overflow-hidden">

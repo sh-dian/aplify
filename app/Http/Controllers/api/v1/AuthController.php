@@ -38,10 +38,11 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
-            $token = $user->createToken('Personal Access Token')->accessToken;
+            $token = $user->createToken('authToken')->plainTextToken;
             $data = [
                 'user' => $user,
-                'token' => $token->token
+                'token' => $token,
+                'token_type' => 'Bearer',
             ];
 
             return $this->return_api(true, Response::HTTP_OK, null, $data, null);
@@ -56,4 +57,17 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Handle user logout
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout(Request $request)
+    {
+        // Revoke current user token
+        Auth::user()->currentAccessToken()->delete();
+        return $this->return_api(true, Response::HTTP_OK, 'Successfully Logout', null, null);
+    }
+
 }
